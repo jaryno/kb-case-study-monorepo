@@ -45,3 +45,8 @@ Thumbs.db
 
 test-output
 /.vscode/launch.json
+
+packages/db/src/generated/
+
+.env
+.env.local
