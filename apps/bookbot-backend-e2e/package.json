@@ -1,0 +1,26 @@
+{
+  "name": "@org/bookbot-backend-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "implicitDependencies": [
+      "@org/bookbot-backend"
+    ],
+    "targets": {
+      "e2e": {
+        "executor": "@nx/jest:jest",
+        "outputs": [
+          "{projectRoot}/test-output/jest/coverage"
+        ],
+        "options": {
+          "jestConfig": "apps/bookbot-backend-e2e/jest.config.cts",
+          "passWithNoTests": true
+        },
+        "dependsOn": [
+          "@org/bookbot-backend:build",
+          "@org/bookbot-backend:serve"
+        ]
+      }
+    }
+  }
+}
