@@ -33,9 +33,11 @@ export class BooksRepository {
 
   async findMany(query: ListBooksQuery) {
     const skip = (query.page - 1) * this.config.pageSize;
+    const where = this.buildListWhere(query);
 
     const [data, totalCount] = await Promise.all([
       this.prisma.book.findMany({
+        where,
         include: {
           editions: {
             include: {
@@ -49,10 +51,62 @@ export class BooksRepository {
         take: this.config.pageSize,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.book.count(),
+      this.prisma.book.count({ where }),
     ]);
 
     return { data, totalCount };
+  }
+
+  private buildListWhere(query: ListBooksQuery) {
+    const editionConditions: Record<string, unknown>[] = [];
+    const itemConditions: Record<string, unknown>[] = [];
+
+    if (query.languages?.length) {
+      editionConditions.push({ language: { in: query.languages } });
+    }
+    if (query.bindings?.length) {
+      editionConditions.push({ binding: { in: query.bindings } });
+    }
+    if (query.yearFrom !== undefined || query.yearTo !== undefined) {
+      const yearFilter: Record<string, number> = {};
+      if (query.yearFrom !== undefined) yearFilter.gte = query.yearFrom;
+      if (query.yearTo !== undefined) yearFilter.lte = query.yearTo;
+      editionConditions.push({ yearPublished: yearFilter });
+    }
+    if (query.authorIds?.length) {
+      editionConditions.push({
+        authors: { some: { authorId: { in: query.authorIds } } },
+      });
+    }
+    if (query.publisherIds?.length) {
+      editionConditions.push({ publisherId: { in: query.publisherIds } });
+    }
+    if (query.conditions?.length) {
+      itemConditions.push({ condition: { in: query.conditions } });
+    }
+    if (query.priceFrom !== undefined || query.priceTo !== undefined) {
+      const priceFilter: Record<string, number> = {};
+      if (query.priceFrom !== undefined) priceFilter.gte = query.priceFrom;
+      if (query.priceTo !== undefined) priceFilter.lte = query.priceTo;
+      itemConditions.push({ price: priceFilter });
+    }
+    if (query.inStock === true) {
+      itemConditions.push({ status: 'AVAILABLE' });
+    }
+
+    if (itemConditions.length) {
+      editionConditions.push({
+        items: { some: { AND: itemConditions } },
+      });
+    }
+
+    if (!editionConditions.length) {
+      return {};
+    }
+
+    return {
+      editions: { some: { AND: editionConditions } },
+    };
   }
 
   async getFilters(): Promise<RawFiltersInput> {

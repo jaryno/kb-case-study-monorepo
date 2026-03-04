@@ -61,6 +61,16 @@ export interface BookDetailResponse {
 
 export interface ListBooksQuery {
   page: number;
+  languages?: string[];
+  bindings?: string[];
+  conditions?: string[];
+  authorIds?: number[];
+  publisherIds?: number[];
+  priceFrom?: number;
+  priceTo?: number;
+  yearFrom?: number;
+  yearTo?: number;
+  inStock?: boolean;
 }
 
 export interface EditionItemInput {
