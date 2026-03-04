@@ -17,6 +17,12 @@
     },
     {
       "path": "./packages/constants"
+    },
+    {
+      "path": "./apps/bookbot-frontend-e2e"
+    },
+    {
+      "path": "./apps/bookbot-frontend"
     }
   ]
 }
