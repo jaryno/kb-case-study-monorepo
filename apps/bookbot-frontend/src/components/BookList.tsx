@@ -1,17 +1,17 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import type { BookListItemResponse } from '@bookbot/book-utils';
 import BookCard from './BookCard';
 
-export default function BookList({ books }: { books: BookListItemResponse[] }) {
-  const t = useTranslations('books');
+interface BookListProps {
+  books: BookListItemResponse[];
+}
+
+export default async function BookList({ books }: BookListProps) {
+  const t = await getTranslations('books');
 
   if (books.length === 0) {
     return (
-      <p className="text-center text-gray-500 py-12">
-        {t('noBooksFound')}
-      </p>
+      <p className="text-center text-gray-500 py-12">{t('noBooksFound')}</p>
     );
   }
 

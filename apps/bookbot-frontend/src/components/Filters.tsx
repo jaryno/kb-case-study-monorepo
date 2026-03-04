@@ -1,11 +1,28 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { BookFiltersResponse } from '@bookbot/book-utils';
+import FilterSection from './FilterSection';
+import type { FilterOption } from './FilterSection';
 
 interface FiltersProps {
   filters: BookFiltersResponse;
+}
+
+interface FilterSectionConfig {
+  titleKey: string;
+  filterKey: string;
+  options: FilterOption[];
+}
+
+function toCodeOptions(items: { code: string; count: number }[]): FilterOption[] {
+  return items.map(({ code, count }) => ({ label: code, value: code, count }));
+}
+
+function toNameOptions(items: { id: number; name: string; count: number }[]): FilterOption[] {
+  return items.map(({ id, name, count }) => ({ label: name, value: String(id), count }));
 }
 
 export default function Filters({ filters }: FiltersProps) {
@@ -13,10 +30,17 @@ export default function Filters({ filters }: FiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const sections: FilterSectionConfig[] = useMemo(() => [
+    { titleKey: 'language', filterKey: 'languages', options: toCodeOptions(filters.languages) },
+    { titleKey: 'binding', filterKey: 'bindings', options: toCodeOptions(filters.bindings) },
+    { titleKey: 'condition', filterKey: 'conditions', options: toCodeOptions(filters.conditions) },
+    { titleKey: 'authors', filterKey: 'authorIds', options: toNameOptions(filters.authors) },
+    { titleKey: 'publishers', filterKey: 'publisherIds', options: toNameOptions(filters.publishers) },
+  ], [filters]);
+
   function toggleFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     const current = params.get(key)?.split(',').filter(Boolean) ?? [];
-
     const updated = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
@@ -63,115 +87,24 @@ export default function Filters({ filters }: FiltersProps) {
         )}
       </div>
 
-      <div>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={searchParams.get('inStock') === 'true'}
-            onChange={toggleInStock}
-          />
-          {t('inStockOnly')}
-        </label>
-      </div>
+      <label className="flex items-center gap-2 text-sm cursor-pointer">
+        <input
+          type="checkbox"
+          checked={searchParams.get('inStock') === 'true'}
+          onChange={toggleInStock}
+        />
+        {t('inStockOnly')}
+      </label>
 
-      <FilterSection
-        title={t('language')}
-        options={filters.languages}
-        filterKey="languages"
-        isActive={isActive}
-        onToggle={toggleFilter}
-      />
-
-      <FilterSection
-        title={t('binding')}
-        options={filters.bindings}
-        filterKey="bindings"
-        isActive={isActive}
-        onToggle={toggleFilter}
-      />
-
-      <FilterSection
-        title={t('condition')}
-        options={filters.conditions}
-        filterKey="conditions"
-        isActive={isActive}
-        onToggle={toggleFilter}
-      />
-
-      {filters.authors.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-sm mb-2">{t('authors')}</h3>
-          {filters.authors.map((author) => (
-            <label
-              key={author.id}
-              className="flex items-center gap-2 text-sm cursor-pointer py-0.5"
-            >
-              <input
-                type="checkbox"
-                checked={isActive('authorIds', String(author.id))}
-                onChange={() => toggleFilter('authorIds', String(author.id))}
-              />
-              {author.name}
-              <span className="text-gray-400 text-xs">({author.count})</span>
-            </label>
-          ))}
-        </div>
-      )}
-
-      {filters.publishers.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-sm mb-2">{t('publishers')}</h3>
-          {filters.publishers.map((pub) => (
-            <label
-              key={pub.id}
-              className="flex items-center gap-2 text-sm cursor-pointer py-0.5"
-            >
-              <input
-                type="checkbox"
-                checked={isActive('publisherIds', String(pub.id))}
-                onChange={() => toggleFilter('publisherIds', String(pub.id))}
-              />
-              {pub.name}
-              <span className="text-gray-400 text-xs">({pub.count})</span>
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FilterSection({
-  title,
-  options,
-  filterKey,
-  isActive,
-  onToggle,
-}: {
-  title: string;
-  options: { code: string; count: number }[];
-  filterKey: string;
-  isActive: (key: string, value: string) => boolean;
-  onToggle: (key: string, value: string) => void;
-}) {
-  if (options.length === 0) return null;
-
-  return (
-    <div>
-      <h3 className="font-semibold text-sm mb-2">{title}</h3>
-      {options.map((opt) => (
-        <label
-          key={opt.code}
-          className="flex items-center gap-2 text-sm cursor-pointer py-0.5"
-        >
-          <input
-            type="checkbox"
-            checked={isActive(filterKey, opt.code)}
-            onChange={() => onToggle(filterKey, opt.code)}
-          />
-          {opt.code}
-          <span className="text-gray-400 text-xs">({opt.count})</span>
-        </label>
+      {sections.map(({ titleKey, filterKey, options }) => (
+        <FilterSection
+          key={filterKey}
+          title={t(titleKey)}
+          options={options}
+          filterKey={filterKey}
+          isActive={isActive}
+          onToggle={toggleFilter}
+        />
       ))}
     </div>
   );

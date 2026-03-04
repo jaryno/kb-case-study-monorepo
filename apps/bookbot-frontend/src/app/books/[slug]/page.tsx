@@ -1,22 +1,28 @@
-'use client';
-
-import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useBook } from '@/hooks/useBooks';
+import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { fetchBook } from '@/lib/api';
+import type { BookEditionResponse } from '@bookbot/book-utils';
+import StockBadge from '@/components/StockBadge';
+import EditionCard from '@/components/EditionCard';
+import type { EditionLabels } from '@/components/EditionCard';
 
-export default function BookDetailPage() {
-  const t = useTranslations();
-  const { slug } = useParams<{ slug: string }>();
-  const { data: book, isLoading, error } = useBook(slug);
+export default async function BookDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const t = await getTranslations();
+  const { slug } = await params;
 
-  if (isLoading) {
-    return <p className="text-center py-12 text-gray-500">{t('common.loading')}</p>;
+  let book;
+  try {
+    book = await fetchBook(slug);
+  } catch {
+    notFound();
   }
 
-  if (error || !book) {
-    return <p className="text-center py-12 text-red-500">{t('books.notFound')}</p>;
-  }
+  const stockLabel = book.inStock ? t('books.inStock') : t('books.soldOut');
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -29,82 +35,50 @@ export default function BookDetailPage() {
         <p className="text-gray-600 mt-2">{book.description}</p>
       )}
 
-      <span
-        className={`inline-block mt-3 text-xs font-medium px-2 py-0.5 rounded ${
-          book.inStock
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-500'
-        }`}
-      >
-        {book.inStock ? t('books.inStock') : t('books.soldOut')}
-      </span>
+      <div className="mt-3">
+        <StockBadge label={stockLabel} inStock={book.inStock} />
+      </div>
 
       <h2 className="text-xl font-semibold mt-8 mb-4">{t('books.editions')}</h2>
       <div className="space-y-4">
         {book.editions.map((edition) => (
-          <div key={edition.id} className="border rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">
-                {edition.language} · {edition.binding}
-                {edition.yearPublished && ` · ${edition.yearPublished}`}
-              </h3>
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${
-                  edition.availableCount > 0
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-500'
-                }`}
-              >
-                {edition.availableCount > 0
-                  ? t('books.inStockCount', { count: edition.availableCount })
-                  : t('books.soldOut')}
-              </span>
-            </div>
-
-            <p className="text-sm text-gray-500 mt-1">
-              {edition.authors.map((a) => a.name).join(', ')}
-            </p>
-            {edition.publisher && (
-              <p className="text-sm text-gray-400">
-                {t('books.publisher', { name: edition.publisher.name })}
-              </p>
-            )}
-            {edition.pageCount && (
-              <p className="text-sm text-gray-400">
-                {t('books.pages', { count: edition.pageCount })}
-                {edition.readingTimeMinutes &&
-                  ` · ${t('books.readingTime', { hours: Math.round(edition.readingTimeMinutes / 60) })}`}
-              </p>
-            )}
-
-            {edition.items.length > 0 && (
-              <div className="mt-3 space-y-1">
-                {edition.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between text-sm bg-gray-50 rounded px-3 py-1"
-                  >
-                    <span>{item.condition}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">{t('books.priceSingle', { price: item.price })}</span>
-                      <span
-                        className={
-                          item.status === 'AVAILABLE'
-                            ? 'text-green-600'
-                            : 'text-gray-400'
-                        }
-                      >
-                        {item.status === 'AVAILABLE' ? '✓' : '✗'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <EditionCard
+            key={edition.id}
+            edition={edition}
+            labels={buildEditionLabels(edition, t)}
+          />
         ))}
       </div>
     </main>
   );
+}
+
+function buildEditionLabels(
+  edition: BookEditionResponse,
+  t: Awaited<ReturnType<typeof getTranslations>>,
+): EditionLabels {
+  const stockLabel =
+    edition.availableCount > 0
+      ? t('books.inStockCount', { count: edition.availableCount })
+      : t('books.soldOut');
+
+  const publisherLabel = edition.publisher
+    ? t('books.publisher', { name: edition.publisher.name })
+    : null;
+
+  let pagesLabel: string | null = null;
+  if (edition.pageCount) {
+    pagesLabel = t('books.pages', { count: edition.pageCount });
+    if (edition.readingTimeMinutes) {
+      pagesLabel += ` · ${t('books.readingTime', { hours: Math.round(edition.readingTimeMinutes / 60) })}`;
+    }
+  }
+
+  const itemPriceLabels: Record<number, string> = {};
+  for (const item of edition.items) {
+    itemPriceLabels[item.id] = t('books.priceSingle', { price: item.price });
+  }
+
+  return { stockLabel, publisherLabel, pagesLabel, itemPriceLabels };
 }
 

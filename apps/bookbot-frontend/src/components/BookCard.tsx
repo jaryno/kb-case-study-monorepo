@@ -1,11 +1,26 @@
-'use client';
-
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import type { BookListItemResponse } from '@bookbot/book-utils';
+import StockBadge from './StockBadge';
+import PriceDisplay from './PriceDisplay';
 
-export default function BookCard({ book }: { book: BookListItemResponse }) {
-  const t = useTranslations('books');
+interface BookCardProps {
+  book: BookListItemResponse;
+}
+
+export default async function BookCard({ book }: BookCardProps) {
+  const t = await getTranslations('books');
+
+  const priceLabel =
+    book.minPrice !== null
+      ? book.minPrice === book.maxPrice
+        ? t('priceSingle', { price: book.minPrice })
+        : t('priceRange', { min: book.minPrice, max: book.maxPrice! })
+      : null;
+
+  const stockLabel = book.inStock
+    ? t('inStockCount', { count: book.availableCount })
+    : t('soldOut');
 
   return (
     <Link
@@ -20,24 +35,8 @@ export default function BookCard({ book }: { book: BookListItemResponse }) {
         {book.languages.join(', ')} · {book.bindings.join(', ')}
       </div>
       <div className="flex items-center justify-between mt-3">
-        {book.minPrice !== null ? (
-          <span className="font-bold">
-            {book.minPrice === book.maxPrice
-              ? t('priceSingle', { price: book.minPrice })
-              : t('priceRange', { min: book.minPrice, max: book.maxPrice! })}
-          </span>
-        ) : (
-          <span className="text-gray-400">—</span>
-        )}
-        <span
-          className={`text-xs font-medium px-2 py-0.5 rounded ${
-            book.inStock
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-500'
-          }`}
-        >
-          {book.inStock ? t('inStockCount', { count: book.availableCount }) : t('soldOut')}
-        </span>
+        <PriceDisplay label={priceLabel} />
+        <StockBadge label={stockLabel} inStock={book.inStock} />
       </div>
     </Link>
   );
