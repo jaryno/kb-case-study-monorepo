@@ -1,3 +1,19 @@
+## Ahoj
+předem se chci omluvit, že to posílám tak pozdě. Snažil jsem se co nejvíce pracovat na backend (NestJs), 
+bohužel FE jsem nesthil věnovat takovou péči, proto spíše berte FE jako demonstrační, že to opravdu funguje :)
+
+Projekt není v konečné fázi a už vůbec ne production ready. Například na frontendu chybí testy, logování (Sentry,...), dodělání next featur jako 404 pages, 
+error boundaries apod.
+
+Na backendu se mi podařilo udělat více práce, ale také by se dal doladit, zejména vyhledávání apod. 
+Bohužel jsem také nestihl napsat testy (Jest), ale v reálném světě bych se je samozřejmě snažil doimplementovat :)
+
+Co se týče devops a CI/CD, použil bych Terraform pro nastavení infrastruktury, Github Pipelines pro deploy applikace např. do AWS.
+K moniotringu, logovánání a altertování bych použil například NewRelic (případně Splunk), se kterými mám zkušenosti z dřívjejších projektů.
+Určitě by se ale dalo použít více technologií.
+
+Děkuji
+
 # Bookbot – KB Case Study Monorepo
 
 NX monorepo s **NestJS** backendem, **Next.js** frontendem, sdílenými knihovnami a Prisma ORM.
