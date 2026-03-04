@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "start:api": "npx nx serve bookbot-backend",
     "db:reset": "npx prisma migrate reset --force --schema=packages/db/prisma/schema.prisma && npx tsx packages/db/prisma/seed.ts",
     "db:seed": "npx tsx packages/db/prisma/seed.ts",
     "db:migrate": "npx prisma migrate dev --schema=packages/db/prisma/schema.prisma"
