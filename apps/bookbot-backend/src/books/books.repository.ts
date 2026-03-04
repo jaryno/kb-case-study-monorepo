@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
 import { PrismaService } from '@bookbot/db';
 import type { ListBooksQuery, RawFiltersInput } from '@bookbot/book-utils';
+import { booksConfig } from './books.config';
 
 @Injectable()
 export class BooksRepository {
-  static readonly PAGE_SIZE = 20;
-  static readonly TOP_FILTER_LIMIT = 10;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(booksConfig.KEY) private readonly config: ConfigType<typeof booksConfig>,
+  ) {}
 
   async findBySlug(slug: string) {
     return this.prisma.book.findUnique({
@@ -29,7 +32,7 @@ export class BooksRepository {
   }
 
   async findMany(query: ListBooksQuery) {
-    const skip = (query.page - 1) * BooksRepository.PAGE_SIZE;
+    const skip = (query.page - 1) * this.config.pageSize;
 
     const [data, totalCount] = await Promise.all([
       this.prisma.book.findMany({
@@ -43,7 +46,7 @@ export class BooksRepository {
           },
         },
         skip,
-        take: BooksRepository.PAGE_SIZE,
+        take: this.config.pageSize,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.book.count(),
@@ -89,14 +92,14 @@ export class BooksRepository {
         by: ['authorId'],
         _count: { _all: true },
         orderBy: { _count: { authorId: 'desc' } },
-        take: BooksRepository.TOP_FILTER_LIMIT,
+        take: this.config.topFilterLimit,
       }),
       this.prisma.bookEdition.groupBy({
         by: ['publisherId'],
         _count: { _all: true },
         orderBy: { _count: { publisherId: 'desc' } },
         where: { publisherId: { not: null } },
-        take: BooksRepository.TOP_FILTER_LIMIT,
+        take: this.config.topFilterLimit,
       }),
     ]);
 

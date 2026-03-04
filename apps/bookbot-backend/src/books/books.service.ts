@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import type { ConfigType } from '@nestjs/config';
 import {
   applyDefaultOrdering,
   mapToListItem,
@@ -10,10 +13,16 @@ import {
   type ListBooksQuery,
 } from '@bookbot/book-utils';
 import { BooksRepository } from './books.repository';
+import { booksConfig } from './books.config';
 
 @Injectable()
 export class BooksService {
-  constructor(private readonly booksRepository: BooksRepository) {}
+
+  constructor(
+    private readonly booksRepository: BooksRepository,
+    @Inject(CACHE_MANAGER) private readonly cache: Cache,
+    @Inject(booksConfig.KEY) private readonly config: ConfigType<typeof booksConfig>,
+  ) {}
 
   async listBooks(query: ListBooksQuery): Promise<BookListResponse> {
     const { data, totalCount } = await this.booksRepository.findMany(query);
@@ -26,9 +35,9 @@ export class BooksService {
       data: items,
       meta: {
         page: query.page,
-        limit: BooksRepository.PAGE_SIZE,
+        limit: this.config.pageSize,
         totalCount,
-        totalPages: Math.ceil(totalCount / BooksRepository.PAGE_SIZE),
+        totalPages: Math.ceil(totalCount / this.config.pageSize),
       },
     };
   }
@@ -54,7 +63,21 @@ export class BooksService {
   }
 
   async getFilters(): Promise<BookFiltersResponse> {
+    const cached = await this.cache.get<BookFiltersResponse>(
+      this.config.filtersCacheKey,
+    );
+    if (cached) {
+      return cached;
+    }
+
     const raw = await this.booksRepository.getFilters();
-    return mapFilters(raw);
+    const filters = mapFilters(raw);
+
+    await this.cache.set(
+      this.config.filtersCacheKey,
+      filters,
+    );
+
+    return filters;
   }
 }
