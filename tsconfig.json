@@ -11,6 +11,12 @@
     },
     {
       "path": "./packages/db"
+    },
+    {
+      "path": "./packages/book-utils"
+    },
+    {
+      "path": "./packages/constants"
     }
   ]
 }

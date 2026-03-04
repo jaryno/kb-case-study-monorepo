@@ -6,6 +6,8 @@ export {
   Binding,
   BookCondition,
   CopyStatus,
+} from '@bookbot/constants';
+export {
   type Book,
   type Author,
   type Publisher,

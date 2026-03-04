@@ -9,7 +9,12 @@
     "emitDecoratorMetadata": true,
     "target": "es2021"
   },
-  "include": ["src/**/*.ts", "../../packages/db/src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../../packages/constants/src/**/*.ts",
+    "../../packages/book-utils/src/**/*.ts",
+    "../../packages/db/src/**/*.ts"
+  ],
   "exclude": [
     "out-tsc",
     "dist",
@@ -23,6 +28,9 @@
     "../../packages/db/src/generated/**"
   ],
   "references": [
+    {
+      "path": "../../packages/book-utils"
+    },
     {
       "path": "../../packages/db"
     }

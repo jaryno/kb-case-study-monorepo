@@ -66,7 +66,7 @@ kb-case-study-monorepo/
   apps/
     bookbot-backend/        ← NestJS API (port 3000)
   packages/
-    db/                     ← Sdílená Prisma knihovna (@org/db)
+    db/                     ← Sdílená Prisma knihovna (@bookbot/db)
       prisma/
         schema.prisma       ← DB schéma (modely, enums)
         seed.ts             ← Seed script s reálnými daty

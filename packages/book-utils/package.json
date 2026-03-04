@@ -1,5 +1,5 @@
 {
-  "name": "@bookbot/db",
+  "name": "@bookbot/book-utils",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -11,14 +11,8 @@
       "default": "./src/index.ts"
     }
   },
-  "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0"
-  },
   "dependencies": {
-    "@bookbot/constants": "*",
-    "@prisma/adapter-pg": "^7.0.0",
-    "@prisma/client": "^7.0.0"
+    "@bookbot/constants": "*"
   },
   "devDependencies": {}
 }
