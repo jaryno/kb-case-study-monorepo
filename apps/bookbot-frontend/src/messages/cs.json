@@ -18,7 +18,11 @@
     "pages": "{count} stran",
     "readingTime": "~{hours} hod čtení",
     "priceRange": "{min}–{max} Kč",
-    "priceSingle": "{price} Kč"
+    "priceSingle": "{price} Kč",
+    "selectLanguage": "Vyberte jazyk",
+    "selectBinding": "Vyberte vazbu",
+    "selectCondition": "Vyberte stav",
+    "soldOutEdition": "Toto vydání není skladem"
   },
   "filters": {
     "title": "Filtry",

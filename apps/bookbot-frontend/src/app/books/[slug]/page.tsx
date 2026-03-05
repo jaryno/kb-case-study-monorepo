@@ -2,10 +2,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchBook } from '@/lib/api';
-import type { BookEditionResponse } from '@bookbot/book-utils';
 import StockBadge from '@/components/StockBadge';
-import EditionCard from '@/components/EditionCard';
-import type { EditionLabels } from '@/components/EditionCard';
+import BookSelector from '@/components/BookSelector';
 
 export default async function BookDetailPage({
   params,
@@ -40,45 +38,19 @@ export default async function BookDetailPage({
       </div>
 
       <h2 className="text-xl font-semibold mt-8 mb-4">{t('books.editions')}</h2>
-      <div className="space-y-4">
-        {book.editions.map((edition) => (
-          <EditionCard
-            key={edition.id}
-            edition={edition}
-            labels={buildEditionLabels(edition, t)}
-          />
-        ))}
-      </div>
+      <BookSelector
+        book={book}
+        labels={{
+          selectLanguage: t('books.selectLanguage'),
+          selectBinding: t('books.selectBinding'),
+          selectCondition: t('books.selectCondition'),
+          unavailable: t('books.soldOutEdition'),
+          currency: t('common.currency'),
+          inStock: t('books.inStock'),
+        }}
+      />
     </main>
   );
 }
 
-function buildEditionLabels(
-  edition: BookEditionResponse,
-  t: Awaited<ReturnType<typeof getTranslations>>,
-): EditionLabels {
-  const stockLabel =
-    edition.availableCount > 0
-      ? t('books.inStockCount', { count: edition.availableCount })
-      : t('books.soldOut');
-
-  const publisherLabel = edition.publisher
-    ? t('books.publisher', { name: edition.publisher.name })
-    : null;
-
-  let pagesLabel: string | null = null;
-  if (edition.pageCount) {
-    pagesLabel = t('books.pages', { count: edition.pageCount });
-    if (edition.readingTimeMinutes) {
-      pagesLabel += ` · ${t('books.readingTime', { hours: Math.round(edition.readingTimeMinutes / 60) })}`;
-    }
-  }
-
-  const itemPriceLabels: Record<number, string> = {};
-  for (const item of edition.items) {
-    itemPriceLabels[item.id] = t('books.priceSingle', { price: item.price });
-  }
-
-  return { stockLabel, publisherLabel, pagesLabel, itemPriceLabels };
-}
 
