@@ -18,9 +18,9 @@ Děkuji
 
 # Bookbot – KB Case Study Monorepo
 
-NX monorepo s **NestJS** backendem, **Next.js** frontendem, sdílenými knihovnami a Prisma ORM.
+NX monorepo with a **NestJS** backend, a **Next.js** frontend, shared libraries, and Prisma ORM.
 
-## 🏗️ Architektura
+## 🏗️ Architecture
 
 ```
 kb-case-study-monorepo/
@@ -28,20 +28,20 @@ kb-case-study-monorepo/
 │   ├── bookbot-backend/          ← NestJS API (port 8080)
 │   └── bookbot-frontend/         ← Next.js App Router (port 3000)
 ├── packages/
-│   ├── book-utils/               ← Sdílené typy, mappery, ordering (@bookbot/book-utils)
-│   ├── constants/                ← Sdílené enumy — Language, Binding, Condition (@bookbot/constants)
-│   └── db/                       ← Prisma schéma, migrace, seed, PrismaModule (@bookbot/db)
+│   ├── book-utils/               ← Shared types, mappers, ordering (@bookbot/book-utils)
+│   ├── constants/                ← Shared enums — Language, Binding, Condition (@bookbot/constants)
+│   └── db/                       ← Prisma schema, migrations, seed, PrismaModule (@bookbot/db)
 ├── docker-compose.yml            ← PostgreSQL 17 + Redis 7
 └── .env.example
 ```
 
-### Technologie
+### Technologies
 
-| Vrstva | Technologie |
+| Layer | Technologies |
 |---|---|
 | **Frontend** | Next.js 16, React 19, Tailwind CSS, React Query, next-intl |
 | **Backend** | NestJS, Prisma ORM, nestjs-pino, class-validator |
-| **Databáze** | PostgreSQL 17, Redis 7 (cache filtrů) |
+| **Database** | PostgreSQL 17, Redis 7 (filter cache) |
 | **Monorepo** | Nx, TypeScript project references |
 
 ---
@@ -52,50 +52,50 @@ kb-case-study-monorepo/
 
 - Node.js 20+
 - npm 10+
-- Docker & Docker Compose (pro PostgreSQL a Redis)
+- Docker & Docker Compose (for PostgreSQL and Redis)
 
-### 1. Instalace závislostí
+### 1. Install dependencies
 
 ```sh
 npm install
 ```
 
-### 2. Nastavení prostředí
+### 2. Configure environment
 
 ```sh
 cp .env.example .env
 ```
 
-Výchozí `.env` hodnoty:
+Default `.env` values:
 
-| Proměnná | Výchozí hodnota | Popis |
+| Variable | Default value | Description |
 |---|---|---|
 | `DATABASE_URL` | `postgresql://bookbot:bookbot@localhost:5432/bookbot` | PostgreSQL connection string |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080/api` | URL backendu pro frontend |
-| `PORT` | `8080` | Port backendu (volitelné) |
-| `CORS_ORIGIN` | `http://localhost:3000` | Povolený CORS origin (volitelné) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080/api` | Backend URL for the frontend |
+| `PORT` | `8080` | Backend port (optional) |
+| `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origin (optional) |
 
-### 3. Spuštění infrastruktury (PostgreSQL + Redis)
+### 3. Start infrastructure (PostgreSQL + Redis)
 
 ```sh
 docker compose up -d
 ```
 
-### 4. Vytvoření DB schématu a seed dat
+### 4. Create DB schema and seed data
 
 ```sh
 npm run db:migrate
 npm run db:seed
 ```
 
-### 5. Spuštění aplikací
+### 5. Start applications
 
 ```sh
 # Backend + Frontend najednou
 npm run start:all
 
-# Nebo jednotlivě:
+# Or individually:
 npm run start:api    # NestJS API → http://localhost:8080/api
 npm run start:web    # Next.js   → http://localhost:3000
 ```
@@ -110,23 +110,23 @@ npm run start:web    # Next.js   → http://localhost:3000
 GET /api/books
 ```
 
-Query parametry (všechny volitelné):
+Query parameters (all optional):
 
-| Parametr | Typ | Příklad | Popis |
+| Parameter | Type | Example | Description |
 |---|---|---|---|
-| `page` | number | `2` | Číslo stránky (výchozí 1) |
-| `languages` | CSV string | `CS,EN` | Filtr jazyků |
-| `bindings` | CSV string | `SOFT,HARD` | Filtr vazby |
-| `conditions` | CSV string | `VERY_GOOD,GOOD` | Filtr stavu |
-| `authorIds` | CSV number | `1,2` | Filtr podle ID autorů |
-| `publisherIds` | CSV number | `3,5` | Filtr podle ID nakladatelství |
-| `priceFrom` | number | `50` | Minimální cena |
-| `priceTo` | number | `200` | Maximální cena |
-| `yearFrom` | number | `2000` | Rok vydání od |
-| `yearTo` | number | `2024` | Rok vydání do |
-| `inStock` | boolean | `true` | Pouze skladem |
+| `page` | number | `2` | Page number (default 1) |
+| `languages` | CSV string | `CS,EN` | Language filter |
+| `bindings` | CSV string | `SOFT,HARD` | Binding filter |
+| `conditions` | CSV string | `VERY_GOOD,GOOD` | Condition filter |
+| `authorIds` | CSV number | `1,2` | Filter by author IDs |
+| `publisherIds` | CSV number | `3,5` | Filter by publisher IDs |
+| `priceFrom` | number | `50` | Minimum price |
+| `priceTo` | number | `200` | Maximum price |
+| `yearFrom` | number | `2000` | Publication year from |
+| `yearTo` | number | `2024` | Publication year to |
+| `inStock` | boolean | `true` | In stock only |
 
-Příklad:
+Example:
 
 ```sh
 curl "http://localhost:8080/api/books?languages=CS,EN&inStock=true&page=1"
@@ -144,20 +144,20 @@ GET /api/books/:slug
 GET /api/books/filters
 ```
 
-Vrací dostupné filtry s počty (jazyky, vazby, stavy, top autoři, top nakladatelství, cenový a rokový rozsah). Výsledek je cachován v Redis (1 hodina).
+Returns available filters with counts (languages, bindings, conditions, top authors, top publishers, price and year ranges). The result is cached in Redis (1 hour).
 
 ---
 
 ## 🎨 Frontend
 
-Next.js App Router s těmito stránkami:
+Next.js App Router with these pages:
 
-| Route | Popis | Rendering |
+| Route | Description | Rendering |
 |---|---|---|
-| `/` | Seznam knih s filtry a stránkováním | Server Component (SSR) |
-| `/books/[slug]` | Detail knihy s edicemi a položkami | Server Component (SSR) |
+| `/` | Book list with filters and pagination | Server Component (SSR) |
+| `/books/[slug]` | Book detail with editions and items | Server Component (SSR) |
 
-### Komponenty
+### Components
 
 ```
 src/
@@ -167,48 +167,48 @@ src/
 │   └── books/[slug]/
 │       └── page.tsx        ← Detail — Server Component
 ├── components/
-│   ├── BookCard.tsx        ← Karta knihy (Server Component)
-│   ├── BookList.tsx        ← Grid knih (Server Component)
-│   ├── EditionCard.tsx     ← Karta edice na detail stránce
-│   ├── Filters.tsx         ← Sidebar filtry (Client Component)
-│   ├── FilterSection.tsx   ← Sekce jednoho filtru (checkbox list)
-│   ├── Pagination.tsx      ← Stránkování
-│   ├── StockBadge.tsx      ← Badge dostupnosti (pure)
-│   ├── PriceDisplay.tsx    ← Zobrazení ceny (pure)
+│   ├── BookCard.tsx        ← Book card (Server Component)
+│   ├── BookList.tsx        ← Books grid (Server Component)
+│   ├── EditionCard.tsx     ← Edition card on the detail page
+│   ├── Filters.tsx         ← Filters sidebar (Client Component)
+│   ├── FilterSection.tsx   ← Single filter section (checkbox list)
+│   ├── Pagination.tsx      ← Pagination
+│   ├── StockBadge.tsx      ← Availability badge (pure)
+│   ├── PriceDisplay.tsx    ← Price display (pure)
 │   └── QueryProvider.tsx   ← React Query provider
 ├── hooks/
-│   └── useBooks.ts         ← React Query hooky
+│   └── useBooks.ts         ← React Query hooks
 ├── lib/
-│   ├── api.ts              ← Fetch funkce (books, filters, detail)
-│   └── config.ts           ← Konfigurace (API URL)
+│   ├── api.ts              ← Fetch functions (books, filters, detail)
+│   └── config.ts           ← Configuration (API URL)
 ├── i18n/
-│   └── request.ts          ← next-intl konfigurace
+│   └── request.ts          ← next-intl configuration
 └── messages/
-    └── cs.json             ← České překlady
+    └── cs.json             ← Czech translations
 ```
 
-### Lokalizace
+### Localization
 
-Používá `next-intl`. Překlady jsou v `src/messages/cs.json`. Pro přidání nového jazyka stačí vytvořit nový soubor (např. `en.json`) a upravit `src/i18n/request.ts`.
+Uses `next-intl`. Translations are in `src/messages/cs.json`. To add a new language, create a new file (e.g. `en.json`) and update `src/i18n/request.ts`.
 
 ---
 
-## 🗃️ Databázový model
+## 🗃️ Database model
 
 ```
-Book (titul)
- └── BookEdition (vydání — jazyk, vazba, rok, nakladatel)
-      ├── BookItem (konkrétní výtisk — stav, cena, status)
+Book (title)
+ └── BookEdition (edition — language, binding, year, publisher)
+      ├── BookItem (specific copy — condition, price, status)
       └── AuthorsOnBookEditions ← → Author
 
-Publisher (nakladatelství)
+Publisher (publisher)
 ```
 
-Klíčový koncept: **Book** = abstraktní titul, **BookEdition** = konkrétní vydání (jazyk, vazba, nakladatel), **BookItem** = fyzický výtisk na skladě (stav, cena, dostupnost).
+Key concept: **Book** = abstract title, **BookEdition** = a specific edition (language, binding, publisher), **BookItem** = a physical copy in stock (condition, price, availability).
 
-### Enumy
+### Enums
 
-| Enum | Hodnoty |
+| Enum | Values |
 |---|---|
 | `Language` | CS, EN, DE, IT, FR, SK, ES, RU, PL |
 | `Binding` | SOFT, HARD, STAPLED, RING, LEPORELO, FLEX, OTHER |
@@ -217,20 +217,20 @@ Klíčový koncept: **Book** = abstraktní titul, **BookEdition** = konkrétní 
 
 ---
 
-## 📋 Užitečné příkazy
+## 📋 Useful commands
 
-| Příkaz | Popis |
+| Command | Description |
 |---|---|
-| `npm run start:api` | Spustit backend (port 8080) |
-| `npm run start:web` | Spustit frontend (port 3000) |
-| `npm run start:all` | Spustit backend + frontend najednou |
-| `npm run db:migrate` | Spustit Prisma migrace |
-| `npm run db:seed` | Naplnit DB seed daty |
-| `npm run db:reset` | Reset DB + migrace + seed |
-| `npx nx build bookbot-backend` | Build backendu |
-| `npx nx build bookbot-frontend` | Build frontendu |
-| `npx nx test bookbot-backend` | Testy backendu |
-| `npx nx lint bookbot-backend` | Lint backendu |
-| `npx nx graph` | Vizualizace dependency grafu |
-| `docker compose up -d` | Spustit PostgreSQL + Redis |
-| `docker compose down` | Zastavit infrastrukturu |
+| `npm run start:api` | Start backend (port 8080) |
+| `npm run start:web` | Start frontend (port 3000) |
+| `npm run start:all` | Start backend + frontend together |
+| `npm run db:migrate` | Run Prisma migrations |
+| `npm run db:seed` | Seed the DB |
+| `npm run db:reset` | Reset DB + migrations + seed |
+| `npx nx build bookbot-backend` | Build backend |
+| `npx nx build bookbot-frontend` | Build frontend |
+| `npx nx test bookbot-backend` | Backend tests |
+| `npx nx lint bookbot-backend` | Lint backend |
+| `npx nx graph` | Dependency graph visualization |
+| `docker compose up -d` | Start PostgreSQL + Redis |
+| `docker compose down` | Stop infrastructure |
